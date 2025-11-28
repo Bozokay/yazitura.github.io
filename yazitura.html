@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 TL Peaky Blinders - Yazı Tura</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@300;500&display=swap');
+
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        .rules {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 50px;
+            perspective: 1000px;
+        }
+
+        .coin {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            transform-style: preserve-3d;
+            /* Başlangıçta transition yok, JS ile yöneteceğiz */
+        }
+
+        .coin img {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* TURA (ÖN YÜZ) - Atatürk */
+        .heads {
+            transform: rotateY(0deg);
+        }
+
+        /* YAZI (ARKA YÜZ) - 1 TL Yazısı */
+        .tails {
+            transform: rotateY(180deg);
+        }
+
+        button {
+            margin-top: 50px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #800000, #b30000);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #result {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-height: 1.5em;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .win-msg {
+            color: #d4af37;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Peaky BlInders Usulü</h1>
+    <div class="rules">
+        <p><strong>Kural:</strong> İki para atılacak.</p>
+        <small>Oyuncu 1: İkisi de AYNI gelirse kazanır.<br>Oyuncu 2: İkisi FARKLI gelirse kazanır.</small>
+    </div>
+
+    <div class="game-container">
+        <div class="coin" id="coin1">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/1TL_reverse.png" class="heads" alt="Tura">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/64/1TL_obverse.png" class="tails" alt="Yazı">
+        </div>
+
+        <div class="coin" id="coin2">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/cd/1TL_reverse.png" class="heads" alt="Tura">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/64/1TL_obverse.png" class="tails" alt="Yazı">
+        </div>
+    </div>
+
+    <p id="result">Bahisler Hazır mı?</p>
+    <button id="flip-btn" onclick="flipCoins()">YAZI TURA AT</button>
+
+    <script>
+        const coin1 = document.getElementById('coin1');
+        const coin2 = document.getElementById('coin2');
+        const resultText = document.getElementById('result');
+        const button = document.getElementById('flip-btn');
+
+        function flipCoins() {
+            button.disabled = true;
+            resultText.textContent = "Paralar dönüyor...";
+            resultText.className = "";
+
+            // --- ADIM 1: SIFIRLAMA (RESET) ---
+            // Önce animasyonu kapatıyoruz ve paraları 0 dereceye (başlangıca) çekiyoruz.
+            coin1.style.transition = "none";
+            coin2.style.transition = "none";
+            coin1.style.transform = "rotateY(0deg)";
+            coin2.style.transform = "rotateY(0deg)";
+
+            // --- ADIM 2: TARAYICIYI TETİKLEME ---
+            // Bu kod (offsetWidth), tarayıcının sıfırlamayı algılaması için gerekli küçük bir hiledir.
+            // Bunu yapmazsak tarayıcı 0'a döndüğünü görmeden direkt yeni dönmeye geçer ve hata olur.
+            void coin1.offsetWidth;
+            void coin2.offsetWidth;
+
+            // --- ADIM 3: SONUÇLARI BELİRLEME ---
+            const result1 = Math.floor(Math.random() * 2); // 0: Tura, 1: Yazı
+            const result2 = Math.floor(Math.random() * 2);
+
+            // --- ADIM 4: YENİ DÖNÜŞ HESABI ---
+            // Her seferinde 0'dan başladığımız için artık kümülatif toplamaya gerek yok.
+            // Sabit 1800 (5 tur) + Sonuç Açısı + Rastgele ekstra 1-2 tur (gerçekçilik için)
+            const rotation1 = 1800 + (result1 * 180) + (Math.floor(Math.random() * 4) * 360); 
+            const rotation2 = 1800 + (result2 * 180) + (Math.floor(Math.random() * 4) * 360); 
+
+            // --- ADIM 5: ANİMASYONU BAŞLATMA ---
+            // Animasyonu geri açıyoruz
+            coin1.style.transition = "transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+            coin2.style.transition = "transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+            
+            // Yeni açılara döndür
+            coin1.style.transform = `rotateY(${rotation1}deg)`;
+            coin2.style.transform = `rotateY(${rotation2}deg)`;
+
+            // --- ADIM 6: SONUÇ YAZDIRMA ---
+            setTimeout(() => {
+                const text1 = result1 === 0 ? "TURA" : "YAZI";
+                const text2 = result2 === 0 ? "TURA" : "YAZI";
+
+                let outcome = "";
+                
+                if (result1 === result2) {
+                    outcome = `SONUÇ: <span class="win-msg">AYNI GELDİ! (${text1} - ${text2})</span>`;
+                } else {
+                    outcome = `SONUÇ: <span class="win-msg">FARKLI GELDİ! (${text1} - ${text2})</span>`;
+                }
+
+                resultText.innerHTML = outcome;
+                button.disabled = false;
+                
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
